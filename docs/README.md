@@ -21,8 +21,8 @@ To accurately extract and represents these relationships, we decided to divide t
 class ProjectGraphCreator:
     # ...
     def build(self) -> Graph:
-        self.create_code_hierarchy() # Step 1: Hierarchy
-        self.create_relationships_from_references_for_files() # Step 2: References
+        self.create_code_hierarchy() # Step 1: Hierarchy, extract the hierarchical structure
+        self.create_relationships_from_references_for_files() # Step 2: References, extract the relationships between different parts of the codebase
         return self.graph
     # ...
 ```
