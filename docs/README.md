@@ -11,9 +11,9 @@ I will share how we built this tool, the challenges we faced, decisions we made 
 
 At the core of any codebase are two fundamental relationships: hierarchy and references.
 
-- Hierarchy refers to the structure of the codebase, such as how files are organized into directories, how classes are nested within each other, and how functions are defined within classes.
+- **Hierarchy** refers to the structure of the codebase, such as how files are organized into directories, how classes are nested within each other, and how functions are defined within classes.
 
-- References refers to how different parts of the codebase interact with each other, such as function calls, variable assignments, and imports.
+- **References** refers to how different parts of the codebase interact with each other, such as function calls, variable assignments, and imports.
 
 To accurately extract and represents these relationships, we decided to divide the problem into two main steps:
 
