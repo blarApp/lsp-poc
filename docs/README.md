@@ -29,7 +29,8 @@ class ProjectGraphCreator:
 
 ### Step 1: Building the hierarchy with tree-sitter
 
-With the help of tree-sitter we broke down the codebase into its hierarchical structure.
+With the help of **tree-sitter**, a parsing library that can generate abstract syntax trees (ASTs) for code in various programming languages, we were able to extract the hierarchical structure of the codebase.
+By parsing the code and analyzing the AST, we could identify folders, files, classes, functions, and methods, and create a graph that represents their containment relationships.
 
 - Folders and files: provide the top-level structure of the codebase.
 ```python
@@ -84,3 +85,117 @@ If we zoom in, we can see the internal structure of a file, with classes, functi
 ![Hierarchy Graph Zoomed In](step1-zoom.png)
 
 ### Step 2: Finding references with the Language Server Protocol
+
+The next step is to find references between different parts of the codebase. This involves analyzing the code to identify function calls, variable assignments, and imports, and creating edges in the graph to represent these relationships.
+
+Luckily, we can leverage the **Language Server Protocol (LSP)** to perform this analysis.
+The LSP is a protocol that allows IDEs and code editors to communicate with language servers, which provide language-specific analysis and tools.
+By using the LSP, we can extract references from the codebase without having to implement language-specific parsers and analyzers.
+
+```python
+    def create_relationships_from_references_for_files(self) -> None:
+        file_nodes = self.graph.get_nodes_by_label(NodeLabels.FILE)
+        self.create_relationship_from_references(file_nodes)
+
+    def create_relationship_from_references(self, file_nodes: List["Node"]) -> None:
+        references_relationships = []
+        total_files = len(file_nodes)
+
+        for index, file_node in enumerate(file_nodes):
+            # ...
+            nodes = self.graph.get_nodes_by_path(file_node.path)
+            for node in nodes:
+                # ...
+                references_relationships.extend(
+                    self.create_node_relationships(node=node, tree_sitter_helper=tree_sitter_helper)
+                )
+            # ...
+        self.graph.add_references_relationships(references_relationships=references_relationships)
+
+    def create_node_relationships(self, node: "Node", tree_sitter_helper: TreeSitterHelper) -> List["Relationship"]:
+        references = self.lsp_query_helper.get_paths_where_node_is_referenced(node)
+        relationships = RelationshipCreator.create_relationships_from_paths_where_node_is_referenced(
+            references=references, node=node, graph=self.graph, tree_sitter_helper=tree_sitter_helper
+        )
+
+        return relationships
+```
+
+By querying the LSP for references to each node in the graph, we can create edges that represent the relationships between different parts of the codebase.
+
+Even though the LSP provides a powerful way to extract references, it does not specify how is the reference being made. For example, it does not tell us if a reference is a function call, a variable assignment, or an import. To address this, we use tree-sitter to analyze the code and determine the type of reference.
+
+```python
+class RelationshipCreator:
+    @staticmethod
+    def create_relationships_from_paths_where_node_is_referenced(
+        references: list["Reference"], node: "Node", graph: "Graph", tree_sitter_helper: "TreeSitterHelper"
+    ) -> List[Relationship]:
+        relationships = []
+        for reference in references:
+            # ...
+
+            found_relationship_scope = tree_sitter_helper.get_reference_type(
+                original_node=node, reference=reference, node_referenced=node_referenced
+            )
+
+            # ...
+            relationships.append(relationship)
+        return relationships
+
+class TreeSitterHelper:
+    def get_reference_type(
+        self, original_node: "DefinitionNode", reference: "Reference", node_referenced: "DefinitionNode"
+    ) -> FoundRelationshipScope:
+        # ...
+        found_relationship_scope = self.language_definitions.get_relationship_type(
+            node=original_node, node_in_point_reference=node_in_point_reference
+        )
+        # ...
+
+        return found_relationship_scope
+
+```
+
+For each language, we define a set of node types that represent different kinds of references, such as function calls, variable assignments, and imports. We then go up the AST from the reference to find the nearest node that matches one of these types, and use it to determine the type of relationship.
+
+```python
+class PythonDefinitions(LanguageDefinitions):
+    def get_relationship_type(node: GraphNode, node_in_point_reference: Node) -> Optional[FoundRelationshipScope]:
+        return PythonDefinitions._find_relationship_type(
+            node_label=node.label,
+            node_in_point_reference=node_in_point_reference,
+        )
+
+    def _find_relationship_type(node_label: str, node_in_point_reference: Node) -> Optional[FoundRelationshipScope]:
+        relationship_types = PythonDefinitions._get_relationship_types_by_label()
+        relevant_relationship_types = relationship_types.get(node_label, {})
+
+        return LanguageDefinitions._traverse_and_find_relationships(
+            node_in_point_reference, relevant_relationship_types
+        )
+
+class LanguageDefinitions:
+    def _traverse_and_find_relationships(node: Node, relationship_mapping: dict) -> Optional[FoundRelationshipScope]:
+        while node is not None:
+            relationship_type = LanguageDefinitions._get_relationship_type_for_node(node, relationship_mapping)
+            if relationship_type:
+                return FoundRelationshipScope(node_in_scope=node, relationship_type=relationship_type)
+            node = node.parent
+        return None
+```
+
+The result of this step is a graph that represents the relationships between different parts of the codebase
+
+Here is an example of our own codebase visualized as a graph after this step:
+
+![References Graph](step2.png)
+
+It is a little bit more messy, since it shows all the references between different parts of the codebase, but it provides a lot of insights into how different parts of the codebase interact with each other.
+
+Here is a zoomed-in view of `main.py`:
+
+![References Graph Zoomed In](step2-zoom.png)
+
+As we can expect, the `main.py` file has a lot of references to other parts of the codebase.
+
