@@ -4,7 +4,7 @@ Software development is a complex and intricate process. It involves multiple pe
 
 What if you could visualize your codebase as a graph? What if you could see how different parts of the system are connected, and how changes in one part of the codebase affect other parts? What if you could use this graph to navigate your codebase, understand its structure, and identify potential issues before they become problems? That is exactly what we set out to build.
 
-We will share how we built this tool, the challenges we faced, decisions we made and lessons we learned along the way.
+I will share how we built this tool, the challenges we faced, decisions we made and lessons we learned along the way.
 
 
 ## Breaking Down the Problem: Hierarchy and References
@@ -125,6 +125,8 @@ By querying the LSP for references to each node in the graph, we can create edge
 
 Even though the LSP provides a powerful way to extract references, it does not specify how is the reference being made. For example, it does not tell us if a reference is a function call, a variable assignment, or an import. To address this, we use tree-sitter to analyze the code and determine the type of reference.
 
+Also, not all LSP implementations provide the exact same set of features (
+
 ```python
 class RelationshipCreator:
     @staticmethod
@@ -198,4 +200,8 @@ Here is a zoomed-in view of `main.py`:
 ![References Graph Zoomed In](step2-zoom.png)
 
 As we can expect, the `main.py` file has a lot of references to other parts of the codebase.
+
+## Conclusion
+
+Codebases are complex, messy, tangled webs of relationships.
 
