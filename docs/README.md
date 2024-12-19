@@ -125,7 +125,7 @@ By querying the LSP for references to each node in the graph, we can create edge
 
 Even though the LSP provides a powerful way to extract references, it does not specify how is the reference being made. For example, it does not tell us if a reference is a function call, a variable assignment, or an import. To address this, we use tree-sitter to analyze the code and determine the type of reference.
 
-Also, not all LSP implementations provide the exact same set of features (
+Also, not all LSP implementations provide the exact same set of features
 
 ```python
 class RelationshipCreator:
@@ -208,3 +208,5 @@ Codebases are messy, complex, and constantly evolving. Understanding the relatio
 Turning a codebase into a graph is just the beginning of a larger journey. While visualizing the relationships and structure of a repository is powerful on its own, the real value lies in the tools and insights built on top of it. By analyzing and interpreting these graphs, we can unlock a deeper understanding of how systems work, identify bottlenecks, and make more informed decisions.
 
 At [Blar](https://blar.io), we’re excited to continue pushing the boundaries of what’s possible. Our mission is to empower developers, teams, and organizations with tools that make complex codebases more accessible, navigable, and insightful. Whether it’s streamlining workflows, enhancing collaboration, or integrating with AI-driven solutions, this journey is just getting started.
+
+***The Blar Team***
